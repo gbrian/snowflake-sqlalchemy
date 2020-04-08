@@ -10,6 +10,54 @@ https://github.com/snowflakedb/snowflake-sqlalchemy
 Release Notes
 -------------------------------------------------------------------------------
 
+- v1.2.3 (March 30, 2020)
+ 
+    - Update tox.ini
+    - Add external stage to COPY INTO custom command.
+    - Bumped pandas to newest versions
+
+- v1.2.2 (March 9, 2020)
+ 
+    - Allow get_table_comment to fetch view comments too
+
+- v1.2.1 (February 18,2020)
+
+    - Add driver property to SnowflakeDialect #140
+    - Suppress deprecation warning by fixing import
+
+- v1.2.0 (January 27, 2020)
+
+    - Fix typo in README Connection Parameters #141
+    - Fix sqlalchemy and possibly python-connector warnings
+    - Fix handling of empty table comments #137
+    - Fix handling spaces in connection string passwords #149
+
+- v1.1.18 (January 6,2020)
+
+    - Set current schema in connection string containing special characters
+    - Calling str on custom_types throws Exception
+
+- v1.1.17 (December 2,2019)
+
+    - Comments not created when creating new table #118
+    - SQLAlchemy Column Metadata Cache not working
+    - Timestamp DDL renders wrong when precision value passed
+    - Fixed special character handling in snowflake-sqlalchemy from URL string
+    - Added development optional dependencies to Python packages
+
+- v1.1.16 (October 21,2019)
+
+    - Fix SQLAlchemy not working with global url
+
+- v1.1.15 (September 30, 2019)
+   
+    - Incorrect SQL generated for INSERT with CTE
+    - Type Synonyms not exported to top-level module #109
+
+- v1.1.14 (August 12, 2019)
+
+    - Fix CSVFormatter class has `FIELD_DELIMETER` spelled incorrectly
+
 - v1.1.13 (May 20,2019)
 
     - CopyInto's maxfilesize method expects a bool instead of an int

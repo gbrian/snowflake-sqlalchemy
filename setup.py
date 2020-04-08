@@ -4,15 +4,16 @@
 # Copyright (c) 2012-2019 Snowflake Computing Inc. All right reserved.
 #
 
-from os import path, getenv
-from setuptools import setup
 from codecs import open
+from os import path
+
+from setuptools import setup
 
 THIS_DIR = path.dirname(path.realpath(__file__))
 
 try:
     from generated_version import VERSION
-except:
+except ImportError:
     from version import VERSION
 version = '.'.join([str(v) for v in VERSION if v is not None])
 
@@ -23,18 +24,18 @@ setup(
     name='snowflake-sqlalchemy',
     version=version,
     description='Snowflake SQLAlchemy Dialect',
-    long_description = long_description,
-    author = 'Snowflake Computing, Inc',
-    author_email = 'support@snowflake.net',
-    license = 'Apache License, Version 2.0',
-    url = 'https://www.snowflake.net/',
-    keywords = "Snowflake db database cloud analytics warehouse",
-    download_url = 'https://www.snowflake.net/',
-    use_2to3 = False,
+    long_description=long_description,
+    author='Snowflake Computing, Inc',
+    author_email='support@snowflake.net',
+    license='Apache License, Version 2.0',
+    url='https://www.snowflake.net/',
+    keywords="Snowflake db database cloud analytics warehouse",
+    download_url='https://www.snowflake.net/',
+    use_2to3=False,
 
-    install_requires = [
+    install_requires=[
         'sqlalchemy<2.0.0',
-        'snowflake-connector-python<2.0.0',
+        'snowflake-connector-python<3.0.0',
     ],
     namespace_packages=[
         'snowflake'
@@ -53,7 +54,7 @@ setup(
             'snowflake=snowflake.sqlalchemy:dialect',
         ]
     },
-    classifiers = [
+    classifiers=[
         'Development Status :: 5 - Production/Stable',
 
         'Environment :: Console',
@@ -69,8 +70,6 @@ setup(
         'Operating System :: OS Independent',
 
         'Programming Language :: SQL',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
@@ -82,4 +81,22 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Topic :: Scientific/Engineering :: Information Analysis',
     ],
+    extras_require={
+        'development': [
+            'pytest',
+            'pytest-cov',
+            'pytest-rerunfailures',
+            'pytest-timeout',
+            'coverage',
+            'pexpect',
+            'mock',
+            'pytz',
+            'pytzdata',
+            'Cython',
+            'more-itertools',
+            'numpy',
+            'pandas==0.24.2;python_version=="3.5"',
+            'pandas>=1.0.0,<1.1.0;python_version>"3.5"',
+        ]
+    },
 )

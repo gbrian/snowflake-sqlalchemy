@@ -224,6 +224,9 @@ class SnowflakeCompiler(compiler.SQLCompiler):
                                                         value))
                                                     for name, value in options_list])) if formatter.options else "")
 
+    def visit_external_stage(self, stage, **kw):
+        return "@{}{}{}".format(stage.namespace, stage.name, stage.path)
+
     def visit_aws_bucket(self, aws_bucket, **kw):
         credentials_list = list(aws_bucket.credentials_used.items())
         if kw.get('deterministic', False):
@@ -292,9 +295,7 @@ class SnowflakeExecutionContext(default.DefaultExecutionContext):
     def should_autocommit(self):
         autocommit = self.execution_options.get(
             'autocommit',
-            not self.compiled and self.statement
-            and expression.PARSE_AUTOCOMMIT
-            or False)
+            not self.compiled and self.statement and expression.PARSE_AUTOCOMMIT or False)
 
         if autocommit is expression.PARSE_AUTOCOMMIT:
             return self.should_autocommit_text(self.unicode_statement)
@@ -378,46 +379,62 @@ class SnowflakeDDLCompiler(compiler.DDLCompiler):
 
 
 class SnowflakeTypeCompiler(compiler.GenericTypeCompiler):
-    def visit_VARIANT(self, type, **kw):
+    def visit_BYTEINT(self, type_, **kw):
+        return "BYTEINT"
+
+    def visit_CHARACTER(self, type_, **kw):
+        return "CHARACTER"
+
+    def visit_DEC(self, type_, **kw):
+        return "DEC"
+
+    def visit_DOUBLE(self, type_, **kw):
+        return "DOUBLE"
+
+    def visit_FIXED(self, type_, **kw):
+        return "FIXED"
+
+    def visit_INT(self, type_, **kw):
+        return "INT"
+
+    def visit_NUMBER(self, type_, **kw):
+        return "NUMBER"
+
+    def visit_STRING(self, type_, **kw):
+        return "STRING"
+
+    def visit_TINYINT(self, type_, **kw):
+        return "TINYINT"
+
+    def visit_VARIANT(self, type_, **kw):
         return "VARIANT"
 
-    def visit_ARRAY(self, type, **kw):
+    def visit_ARRAY(self, type_, **kw):
         return "ARRAY"
 
-    def visit_OBJECT(self, type, **kw):
+    def visit_OBJECT(self, type_, **kw):
         return "OBJECT"
 
-    def visit_BLOB(self, type, **kw):
+    def visit_BLOB(self, type_, **kw):
         return "BINARY"
 
-    def visit_datetime(self, type, **kw):
-        return self.visit_TIMESTAMP(type, **kw)
+    def visit_datetime(self, type_, **kw):
+        return "datetime"
 
-    def visit_DATETIME(self, type, **kw):
-        return self.visit_TIMESTAMP(type, **kw)
+    def visit_DATETIME(self, type_, **kw):
+        return "DATETIME"
 
-    def visit_TIMESTAMP_NTZ(self, type, **kw):
-        kw['timezone'] = False
-        return self.visit_TIMESTAMP(type, **kw)
+    def visit_TIMESTAMP_NTZ(self, type_, **kw):
+        return "TIMESTAMP_NTZ"
 
-    def visit_TIMESTAMP_TZ(self, type, **kw):
-        kw['timezone'] = True
-        return self.visit_TIMESTAMP(type, **kw)
+    def visit_TIMESTAMP_TZ(self, type_, **kw):
+        return "TIMESTAMP_TZ"
 
-    def visit_TIMESTAMP_LTZ(self, type, **kw):
-        kw['timezone'] = True
-        kw['is_local'] = True
-        return self.visit_TIMESTAMP(type, **kw)
+    def visit_TIMESTAMP_LTZ(self, type_, **kw):
+        return "TIMESTAMP_LTZ"
 
-    def visit_TIMESTAMP(self, type, **kw):
-        is_local = kw.get('is_local', False)
-        timezone = kw.get('timezone', type.timezone)
-        return "TIMESTAMP%s %s" % (
-            "(%d)" % type.precision if getattr(type, 'precision',
-                                               None) is not None else "",
-            (timezone and "WITH" or "WITHOUT") + (
-                    is_local and " LOCAL" or "") + " TIME ZONE"
-        )
+    def visit_TIMESTAMP(self, type_, **kw):
+        return "TIMESTAMP"
 
 
 construct_arguments = [

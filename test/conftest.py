@@ -11,18 +11,32 @@ import uuid
 from logging import getLogger
 
 import pytest
-from parameters import (CONNECTION_PARAMETERS)
-from sqlalchemy import create_engine
-
 import snowflake.connector
-from snowflake.connector.compat import TO_UNICODE
+from parameters import CONNECTION_PARAMETERS
+from snowflake.connector.compat import IS_WINDOWS, TO_UNICODE
 from snowflake.sqlalchemy import URL, dialect
+from sqlalchemy import create_engine
 
 if os.getenv('TRAVIS') == 'true':
     TEST_SCHEMA = 'TRAVIS_JOB_{0}'.format(os.getenv('TRAVIS_JOB_ID'))
 else:
     TEST_SCHEMA = (
             'sqlalchemy_tests_' + TO_UNICODE(uuid.uuid4()).replace('-', '_'))
+
+
+@pytest.fixture(scope='session')
+def on_travis():
+    return os.getenv('TRAVIS', '').lower() == 'true'
+
+
+@pytest.fixture(scope='session')
+def on_appveyor():
+    return os.getenv('APPVEYOR', '').lower() == 'true'
+
+
+@pytest.fixture(scope='session')
+def on_public_ci(on_travis, on_appveyor):
+    return on_travis or on_appveyor
 
 
 def help():
@@ -50,9 +64,11 @@ DEFAULT_PARAMETERS = {
     'port': '443',
 }
 
+
 @pytest.fixture(scope='session')
 def db_parameters():
     return get_db_parameters()
+
 
 def get_db_parameters():
     """
@@ -60,7 +76,8 @@ def get_db_parameters():
     """
     ret = {}
     os.environ['TZ'] = 'UTC'
-    time.tzset()
+    if not IS_WINDOWS:
+        time.tzset()
     for k, v in CONNECTION_PARAMETERS.items():
         ret[k] = v
 
@@ -81,10 +98,29 @@ def get_db_parameters():
             TO_UNICODE(uuid.uuid4())).replace('-', '_')
     ret['schema'] = TEST_SCHEMA
 
+    # This reduces a chance to exposing password in test output.
+    ret['a00'] = 'dummy parameter'
+    ret['a01'] = 'dummy parameter'
+    ret['a02'] = 'dummy parameter'
+    ret['a03'] = 'dummy parameter'
+    ret['a04'] = 'dummy parameter'
+    ret['a05'] = 'dummy parameter'
+    ret['a06'] = 'dummy parameter'
+    ret['a07'] = 'dummy parameter'
+    ret['a08'] = 'dummy parameter'
+    ret['a09'] = 'dummy parameter'
+    ret['a10'] = 'dummy parameter'
+    ret['a11'] = 'dummy parameter'
+    ret['a12'] = 'dummy parameter'
+    ret['a13'] = 'dummy parameter'
+    ret['a14'] = 'dummy parameter'
+    ret['a15'] = 'dummy parameter'
+    ret['a16'] = 'dummy parameter'
+
     return ret
 
 
-def get_engine(user=None, password=None, account=None):
+def get_engine(user=None, password=None, account=None, schema=None):
     """
     Creates a connection using the parameters defined in JDBC connect string
     """
@@ -104,7 +140,7 @@ def get_engine(user=None, password=None, account=None):
         host=ret['host'],
         port=ret['port'],
         database=ret['database'],
-        schema=TEST_SCHEMA,
+        schema=TEST_SCHEMA if not schema else schema,
         account=ret['account'],
         protocol=ret['protocol']
     ), poolclass=NullPool)
@@ -114,12 +150,8 @@ def get_engine(user=None, password=None, account=None):
 
 @pytest.fixture()
 def engine_testaccount(request):
-    engine, ret = get_engine()
-
-    def fin():
-        engine.dispose()  # close when done
-
-    request.addfinalizer(fin)
+    engine, _ = get_engine()
+    request.addfinalizer(engine.dispose)
     return engine
 
 
@@ -136,7 +168,7 @@ def init_test_schema(request, db_parameters):
             protocol=ret['protocol']
     ) as con:
         con.cursor().execute(
-            "CREATE SCHEMA IF NOT EXISTS {0}".format(TEST_SCHEMA))
+            "CREATE SCHEMA IF NOT EXISTS {}".format(TEST_SCHEMA))
 
     def fin():
         ret1 = db_parameters

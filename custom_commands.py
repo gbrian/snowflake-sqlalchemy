@@ -4,7 +4,7 @@
 # Copyright (c) 2012-2019 Snowflake Computing Inc. All right reserved.
 #
 
-from collections import Sequence
+from collections.abc import Sequence
 from sqlalchemy import true, false
 from sqlalchemy.sql.dml import UpdateBase
 from sqlalchemy.util.compat import string_types
@@ -13,10 +13,12 @@ from sqlalchemy.sql.elements import ClauseElement
 
 NoneType = type(None)
 
+
 def translate_bool(bln):
     if bln:
         return true()
     return false()
+
 
 class MergeInto(UpdateBase):
     __visit_name__ = 'merge_into'
@@ -159,15 +161,15 @@ class CSVFormatter(CopyFormatter):
             self.options['RECORD_DELIMITER'] = deli_type
         return self
 
-    def field_delimeter(self, deli_type):
+    def field_delimiter(self, deli_type):
         """Character that separates fields in an unloaded file."""
         if not isinstance(deli_type, (int, NoneType, string_types)) \
                 or (isinstance(deli_type, string_types) and len(deli_type) != 1):
             raise TypeError("Field delimeter should be a single character, that is either a string, or a number")
         if isinstance(deli_type, int):
-            self.options['FIELD_DELIMETER'] = hex(deli_type)
+            self.options['FIELD_DELIMITER'] = hex(deli_type)
         else:
-            self.options['FIELD_DELIMETER'] = deli_type
+            self.options['FIELD_DELIMITER'] = deli_type
         return self
 
     def file_extension(self, ext):
@@ -285,6 +287,27 @@ class PARQUETFormatter(CopyFormatter):
             raise TypeError("Comp should be a Boolean value")
         self.options['SNAPPY_COMPRESSION'] = translate_bool(comp)
         return self
+
+
+class ExternalStage(ClauseElement):
+    """External Stage descriptor"""
+    __visit_name__ = "external_stage"
+
+    @staticmethod
+    def prepare_namespace(namespace):
+        return "{}.".format(namespace) if not namespace.endswith(".") else namespace
+
+    @staticmethod
+    def prepare_path(path):
+        return "/{}".format(path) if not path.startswith("/") else path
+
+    def __init__(self, name, path=None, namespace=None):
+        self.name = name
+        self.path = self.prepare_path(path) if path else ""
+        self.namespace = self.prepare_namespace(namespace) if namespace else ""
+
+    def __repr__(self):
+        return "@{}{}{}".format(self.namespace, self.name, self.path)
 
 
 class AWSBucket(ClauseElement):

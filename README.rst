@@ -4,6 +4,9 @@ Snowflake SQLAlchemy
 .. image:: https://travis-ci.org/snowflakedb/snowflake-sqlalchemy.svg?branch=master
     :target: https://travis-ci.org/snowflakedb/snowflake-sqlalchemy
 
+.. image:: https://ci.appveyor.com/api/projects/status/risll3oufbi12nou?svg=true
+    :target: https://ci.appveyor.com/project/smtakeda/snowflake-sqlalchemy
+
 .. image:: https://codecov.io/gh/snowflakedb/snowflake-sqlalchemy/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/snowflakedb/snowflake-sqlalchemy
 
@@ -104,7 +107,7 @@ You can optionally specify the initial database and schema for the Snowflake ses
 
     .. code-block:: python
 
-        'snowflake://<user_login_name>:<password>@<account_name>/<database_name>/<schema_name>?warehouse=<warehouse_name>?role=<role_name>'
+        'snowflake://<user_login_name>:<password>@<account_name>/<database_name>/<schema_name>?warehouse=<warehouse_name>&role=<role_name>'
 
 .. note::
 
@@ -249,7 +252,7 @@ SQLAlchemy provides `the runtime inspection API <http://docs.sqlalchemy.org/en/l
         schema = inspector.default_schema_name
         for table_name in inspector.get_table_names(schema):
             column_metadata = inspector.get_columns(table_name, schema)
-            primary_keys = inspector.get_primary_keys(table_name, schema)
+            primary_keys = inspector.get_pk_constraint(table_name, schema)
             foreign_keys = inspector.get_foreign_keys(table_name, schema)
             ...
 
@@ -270,7 +273,8 @@ To mitigate the problem, Snowflake SQLAlchemy takes a flag :code:`cache_column_m
             cache_column_metadata=True,
         ))
 
-Note memory usage will go up higher as all of column metadata are cached associated with :code:`Inspector` object. Use the flag only if you need to get all of column metadata.
+Note that this flag has been deprecated, as our caching now uses the built-in SQLAlchemy reflection cache, the flag has been removed, but caching has been improved and if possible extra data will be fetched and cached.
+
 
 VARIANT, ARRAY and OBJECT Support
 -------------------------------------------------------------------------------
